@@ -7,3 +7,5 @@ project ("LC-3")
 
 # Include sub-projects.
 add_subdirectory ("LC-3")
+add_subdirectory ("Identifiers")
+add_subdirectory ("Asm")
