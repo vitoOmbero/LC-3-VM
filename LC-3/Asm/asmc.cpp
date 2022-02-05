@@ -44,11 +44,10 @@ int64_t ReverseBits(const char* p1, const char* p2)
 }
 
 
-enum class TokenType { Keyword, Number, Register};
+enum class TokenType { Keyword, Number, Register, Pass};
 
-using Token = std::pair<TokenType, int64_t>;
+using Token = std::pair<TokenType, int16_t>;
 
-// TODO: rewrite for LC-3
 void Tokenize(const std::string_view& str, std::vector<Token>& tokens)
 {
 	for (int i = 0; i < str.size(); ++i)
@@ -84,7 +83,7 @@ void Tokenize(const std::string_view& str, std::vector<Token>& tokens)
 		else
 			if ((ch >= '0' && ch <= '9') || ch == '-')
 			{
-				int64_t sign = 1;
+				char sign = 1;
 				if (ch == '-')
 				{
 					begin = ++i;
@@ -92,7 +91,7 @@ void Tokenize(const std::string_view& str, std::vector<Token>& tokens)
 					sign = -1;
 				}
 
-				auto nToken = (int64_t)ch - (int64_t)'0';
+				auto nToken = (int16_t)ch - (int16_t)'0';
 				if (nToken > 0)
 				{
 					// NOTE: decimal
@@ -114,7 +113,7 @@ void Tokenize(const std::string_view& str, std::vector<Token>& tokens)
 						}
 						auto token = std::string_view(str.substr(begin, (size_t)i - (size_t)begin));
 						auto ul = std::strtoul(token.data(), nullptr, 16);
-						nToken = static_cast<int64_t>(ul);
+						nToken = static_cast<int16_t>(ul);
 					}
 					else
 					{
@@ -126,14 +125,15 @@ void Tokenize(const std::string_view& str, std::vector<Token>& tokens)
 						}
 						auto token = std::string_view(str.substr(begin, (size_t)i - (size_t)begin));
 						auto ul = std::strtoul(token.data(), nullptr, 8);
-						nToken = static_cast<int64_t>(ul);
+						nToken = static_cast<int16_t>(ul);
 					}
 				}
 
-				tokens.emplace_back(TokenType::Number, static_cast<int64_t>(nToken * sign));
+				tokens.emplace_back(TokenType::Number, static_cast<int16_t>(nToken * sign));
 			}
 			else if (ch == ';')
 			{
+				tokens.emplace_back(TokenType::Pass, 0);
 				return;
 			}
 

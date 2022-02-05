@@ -3,22 +3,22 @@
 #include <iostream>
 #include <vector>
 #include <string_view>
+#include <filesystem>
 
 #include "identifiers.h"
 #include "private/memory.h"
 
-#define OUT
-
-using VMProgram = std::vector<int16_t>;
+using VMProgram = std::vector<uint16_t>;
 
 class VirtualMachine
 {
 public:
-	using ValueType = int16_t;
+	using ValueType = uint16_t;
 
 	VirtualMachine(bool traceModeOn = true);
 
-	void Run(const VMProgram& program);
+	bool LoadObj(std::filesystem::path obj);
+	void Run();
 
 private:
 	/// <summary>
@@ -27,7 +27,6 @@ private:
 	std::array<ValueType, static_cast<ValueType>(R::NREG)> m_register;
 	bool m_traceMode;
 	bool m_isRunning;
-	const VMProgram* m_program;
 	Memory m_mem;
 
 private:
@@ -35,8 +34,7 @@ private:
 
 	void Skip(ValueType n);
 
-	bool ProcessAddOperation(ValueType instr);
-	bool ProcessAndOperation(ValueType instr);
+	bool ProcessAddAndOperations(ValueType instr, bool ADD = true);
 	bool ProcessNotOperation(ValueType instr);
 	bool ProcessBranchOperation(ValueType instr);
 	bool ProcessJumpOperation(ValueType instr);
@@ -61,10 +59,6 @@ private:
 	constexpr ValueType& m_(R regName) { return m_register[static_cast<ValueType>(regName)]; }
 	ValueType Fetch() { return m_mem.Read(m_(R::PC)++); };
 	inline R RegisterNameFromRegisterCode(ValueType code);
-
-	R RegisterNameFromInstr(ValueType instruction);
-	{
-
-	}
+	inline TR TrapNameFromTrapCode(ValueType code);
 
 };

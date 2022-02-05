@@ -3,12 +3,19 @@
 #include <string_view>
 #include <array>
 
+#ifdef WIN32
+#undef OUT
+#undef IN
+#endif
+
 /// <summary>
 /// Register names
 /// </summary>
 enum class R
 {
-	R0,
+	FIRST,
+	R0 = FIRST,
+
 	R1,
 	R2,
 	R3,
@@ -17,7 +24,9 @@ enum class R
 	R6,
 	R7,
 	PC,
-	COND,
+
+	LAST,
+	COND = LAST,
 
 	NREG
 };
@@ -46,7 +55,7 @@ enum class OP
 	LEA,			/* load effective address */
 	TRAP,			/* execute trap */
 
-	NOP,
+	NOP // LAST
 };
 
 inline static const int kInstructionSizeInBits = 4;
@@ -109,7 +118,7 @@ inline static const int kNotIndex{ -1 };
 template<int N> 
 int64_t FindIndex(const std::array<std::string_view, N>& arr, const std::string_view& str)
 {
-	int index{ kNotIndex };
+	int64_t index{ kNotIndex };
 	auto it = std::find(arr.begin(), arr.end(), str);
 	if (it != arr.end())
 	{
@@ -133,3 +142,46 @@ inline int64_t FindRegister(const std::string_view& str)
 	return FindIndex(g_register, str);
 }
 
+/// <summary>
+/// TrapCodes
+/// </summary>
+enum class TR
+{
+	FIRST = 0x20,
+	GETC = FIRST, /* get character from keyboard */
+
+	OUT = 0x21, /* output a character  */
+	PUTS = 0x22, /* output a word string */
+	IN = 0x23, /* get character from keyboard, echoed onto the terminal */
+	PUTSP = 0x24, /* output a byte string */
+
+	LAST = 0x25, 
+	HALT = LAST, /* halt the program */
+
+	NTR = 6
+};
+
+static inline std::array<std::string_view, static_cast<size_t>(TR::NTR)> g_trap =
+{
+	"GETC",
+	"OUT",
+	"PUTS",
+	"IN",
+	"PUTSP",
+	"HALT"
+};
+
+inline const std::string_view Str(TR trap)
+{
+	return g_trap[static_cast<size_t>(trap) - static_cast<size_t>(TR::GETC)];
+};
+
+inline int64_t FindTrap(const std::string_view& str)
+{
+	return FindIndex(g_trap, str);
+}
+
+#ifdef WIN32
+#define OUT
+#define IN
+#endif
