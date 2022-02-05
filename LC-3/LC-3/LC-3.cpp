@@ -100,7 +100,7 @@ void VirtualMachine::Show(OP opCode)
     }
 }
 
-R VirtualMachine::RegisterName(ValueType code)
+R VirtualMachine::RegisterNameFromRegisterCode(ValueType code)
 {
     if (code > static_cast<ValueType>(R::NREG) ||
         (code < static_cast<ValueType>(R::R0)))
@@ -124,45 +124,34 @@ bool VirtualMachine::ProcessAddOperation(ValueType instr)
     const ValueType mSR2 = 0b111;
     const ValueType mImm5 = 0b11111;
 
-    auto sr1_v = (instr & mSR1) >> 6;
-    auto sr1 = RegisterName(sr1_v);
+    auto srcReg1_val = (instr & mSR1) >> 6;
+    auto srcReg1 = RegisterNameFromRegisterCode(srcReg1_val);
         
-    auto dr_v = (instr & mDR) >> 9;
-    auto dr = RegisterName(dr_v);
+    auto destReg_val = (instr & mDR) >> 9;
+    auto destReg = RegisterNameFromRegisterCode(destReg_val);
 
-    if (R::NREG == dr || R::NREG == sr1) {
+    if (R::NREG == destReg || R::NREG == srcReg1) {
         return false;
     }
 
-    ValueType add_v{ 0 };
-
     if (instr & mMode)
     {
-        add_v = SignExtend(instr & mImm5, 5);
+        m_(destReg) = m_(srcReg1) + SignExtend(instr & mImm5, 5);
     }
     else
     {
-        auto sr2_v = instr & mSR2;
-        auto sr2 = RegisterName(sr2_v);
+        auto srcReg2_val = instr & mSR2;
+        auto srcReg2 = RegisterNameFromRegisterCode(srcReg2_val);
 
-        if (R::NREG == sr2) {
+        if (R::NREG == srcReg2) {
             return false;
         }
 
-        add_v = m_(sr2);
+        m_(destReg) = m_(srcReg1) + m_(srcReg2);
     }
 
-    if (sr1 == dr)
-    {
-        m_(dr) += add_v;
-    }
-    else
-    {
-        m_(dr) = m_(sr1) + add_v;
-    }
-
-    UpdateFlags(dr);
-    
+    UpdateFlags(destReg);
+    return true;
 }
 
 VirtualMachine::ValueType VirtualMachine::SignExtend(VirtualMachine::ValueType x, int bit_count)
@@ -187,4 +176,17 @@ void VirtualMachine::UpdateFlags(R r)
     {
         m_(R::COND) = static_cast<ValueType>(FL::POS);
     }
+}
+
+bool VirtualMachine::ProcessLoadIndirectOperation(ValueType instr)
+{
+    // bits |15    12|11  9|8         0|
+    // data | OpCode |  DR | PCoffset9 |
+    const ValueType mOpCode = 0b1111 << 12;
+    const ValueType mDR = 0b111 << 9;
+    const ValueType mPCoffset9 = 0b111111111;
+
+
+
+    return true;
 }

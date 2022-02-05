@@ -7,6 +7,8 @@
 #include "identifiers.h"
 #include "private/memory.h"
 
+#define OUT
+
 using VMProgram = std::vector<int16_t>;
 
 class VirtualMachine
@@ -31,10 +33,6 @@ private:
 private:
 	void Show(OP opCode);
 
-	ValueType& m_(R regName) { return m_register[static_cast<ValueType>(regName)]; }
-	ValueType Fetch() { return m_mem.Read(m_(R::PC)++); };
-	inline R RegisterName(ValueType code);
-
 	void Skip(ValueType n);
 
 	bool ProcessAddOperation(ValueType instr);
@@ -58,5 +56,15 @@ private:
 	/// </summary>
 	/// <param name="r">target register</param>
 	void UpdateFlags(R r);
+
+private:
+	constexpr ValueType& m_(R regName) { return m_register[static_cast<ValueType>(regName)]; }
+	ValueType Fetch() { return m_mem.Read(m_(R::PC)++); };
+	inline R RegisterNameFromRegisterCode(ValueType code);
+
+	R RegisterNameFromInstr(ValueType instruction);
+	{
+
+	}
 
 };
